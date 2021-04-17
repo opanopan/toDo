@@ -1,4 +1,5 @@
 from rest_framework.views import APIView
+from rest_framework.generics import get_object_or_404
 from rest_framework.response import Response
 from django.http import HttpResponse
 
@@ -34,6 +35,10 @@ class NotesView_id(APIView):
             return HttpResponse(status=404)
 
     def put(self, request, note_id):
-        needed_obj = Notes.objects.all()
-        serializer = NotesSerializer()
-        return serializer.update(needed_obj, note_id)
+        saved_note = Notes.objects.filter(id=note_id)
+        serializer = NotesSerializer(saved_note.first(), request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return HttpResponse(status=201)
+        else:
+            return HttpResponse(status=404)
