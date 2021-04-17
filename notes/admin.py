@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Notes, Authors, States
+from .models import Notes
 
 
 # Register your models here.
@@ -8,4 +8,4 @@ class NotesAdmin(admin.ModelAdmin):
     pass
 
 
-admin.site.register([Notes, Authors, States], NotesAdmin)
+admin.site.register([Notes], NotesAdmin)
