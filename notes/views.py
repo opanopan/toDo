@@ -1,4 +1,5 @@
 from rest_framework.views import APIView
+from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from django.http import HttpResponse
@@ -15,7 +16,7 @@ class AboutView(APIView):
             data = {'user': request.user.username, 'version': NoteSettings.VERSION}
             return Response(data)
         else:
-            return HttpResponse(status=500)
+            return Response(status=status.HTTP_404_NOT_FOUND)
 
 
 class NotesView(APIView):
@@ -27,7 +28,7 @@ class NotesView(APIView):
         query_param = QuerySerializer(data=request.query_params)
 
         if not query_param.is_valid():
-            return HttpResponse(status=400)
+            return Response(status=status.HTTP_400_BAD_REQUEST)
 
         q_note = Q()
         is_im = query_param.data.get('is_important')
@@ -53,7 +54,7 @@ class NotesView(APIView):
         serializer = NotesSerializer(data=request.data)
         if serializer.is_valid(raise_exception=True):
             note_saved = serializer.save()
-        return HttpResponse(status=201)
+        return Response(status=status.HTTP_201_CREATED)
 
 
 class NotesViewId(APIView):
@@ -67,19 +68,19 @@ class NotesViewId(APIView):
         needed_id = Notes.objects.filter(id=note_id, author=request.user.id)
         if needed_id:
             needed_id.delete()
-            return HttpResponse(status=204)
+            return Response(status=status.HTTP_204_NO_CONTENT)
         else:
-            return HttpResponse(status=403)
+            return Response(status=status.HTTP_403_FORBIDDEN)
 
     def put(self, request, note_id):
         saved_note = Notes.objects.filter(id=note_id, author=request.user.id)
         if not saved_note:
-            return HttpResponse(status=403)
+            return Response(status=status.HTTP_403_FORBIDDEN)
 
         serializer = NotesSerializer(saved_note.first(), request.data)
 
         if serializer.is_valid():
             serializer.save()
-            return HttpResponse(status=201)
+            return Response(status=status.HTTP_201_CREATED)
         else:
-            return HttpResponse(status=404)
+            return Response(status=status.HTTP_404_NOT_FOUND)
