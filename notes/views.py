@@ -56,7 +56,7 @@ class NotesView(APIView):
         return HttpResponse(status=201)
 
 
-class NotesView_id(APIView):
+class NotesViewId(APIView):
     def get(self, request, note_id):
         notes_model = Notes.objects.filter(is_public=True, id=note_id) | \
                       Notes.objects.filter(author=request.user.id, id=note_id)
