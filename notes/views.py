@@ -1,40 +1,51 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
 from django.http import HttpResponse
 from django.db.models import Q
 
 from .models import Notes
 from .serializers import NotesSerializer, QuerySerializer
+from .settings_local import NoteSettings
+
+
+class AboutView(APIView):
+    def get(self, request):
+        if request.user.username and NoteSettings.VERSION:
+            data = {'user': request.user.username, 'version': NoteSettings.VERSION}
+            return Response(data)
+        else:
+            return HttpResponse(status=500)
 
 
 class NotesView(APIView):
+    permission_classes = (IsAuthenticated,)
 
     def get(self, request):
         notes_model = Notes.objects.filter(is_public=True) | Notes.objects.filter(author=request.user.id)
+        notes_model = notes_model.order_by('date', 'is_important')
         query_param = QuerySerializer(data=request.query_params)
-        if query_param.is_valid():
-            print(0)
-            q_note = Q()
-            print(query_param.data)
-            is_im = query_param.data.get('is_important')
-            is_pu = query_param.data.get('is_public')
-            if is_im is not None:
-                q_note &= Q(is_important=is_im)
 
-            if is_pu is not None:
-                q_note &= Q(is_public=is_pu)
-
-            if query_param.data.get('state'):
-                q_note_state = Q()
-                for notes_state in query_param.data['state']:
-                    print(1)
-                    q_note_state |= Q(state=notes_state)
-                q_note &= q_note_state
-
-            print(q_note)
-            notes_model = notes_model.filter(q_note)
-        else:
+        if not query_param.is_valid():
             return HttpResponse(status=400)
+
+        q_note = Q()
+        is_im = query_param.data.get('is_important')
+        is_pu = query_param.data.get('is_public')
+
+        if is_im is not None:
+            q_note &= Q(is_important=is_im)
+
+        if is_pu is not None:
+            q_note &= Q(is_public=is_pu)
+
+        if query_param.data.get('state'):
+            q_note_state = Q()
+            for notes_state in query_param.data['state']:
+                q_note_state |= Q(state=notes_state)
+            q_note &= q_note_state
+
+        notes_model = notes_model.filter(q_note)
 
         return Response(NotesSerializer(notes_model, many=True).data)
 

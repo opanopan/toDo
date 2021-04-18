@@ -1,4 +1,5 @@
-from rest_framework.serializers import ModelSerializer, Serializer, ListField, ChoiceField, NullBooleanField
+from rest_framework.serializers import ModelSerializer, Serializer, ListField, \
+    ChoiceField, NullBooleanField, CharField, FloatField
 
 from .models import Notes
 
