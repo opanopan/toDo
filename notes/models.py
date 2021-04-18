@@ -15,7 +15,7 @@ class Notes(models.Model):
     is_public = models.BooleanField(verbose_name="Is public")
     is_important = models.BooleanField(verbose_name="Is important")
     finish_date = models.DateTimeField(default=note_time, verbose_name="End time")
-    author = models.ForeignKey(User, on_delete=models.PROTECT, verbose_name="Author")
+    author = models.ForeignKey(User, on_delete=models.PROTECT, verbose_name="Author", editable=False)
     state = models.IntegerField(choices=NOTE_STATES, default=1)
 
     def __str__(self):
